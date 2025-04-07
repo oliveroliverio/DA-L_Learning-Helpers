@@ -8,3 +8,7 @@ numpy>=1.24.0
 mss>=7.0.0
 pytesseract>=0.3.10
 scikit-image>=0.20.0
+# JSON-Friendly Markdown GUI dependencies
+PyQt5>=5.15.9
+# Learning Session Database dependencies
+sqlalchemy>=2.0.23

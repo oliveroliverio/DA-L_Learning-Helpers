@@ -73,3 +73,43 @@
 
 ### Files Changed:
 - No direct file changes, only branch management
+
+## 2025-04-06: Created JSON-Friendly Markdown GUI
+
+### Changes:
+- Created a GUI application for converting raw markdown to JSON-friendly format
+- Features include:
+  - Two-panel interface with raw markdown input and JSON-friendly output
+  - Drag and drop support for markdown files
+  - Automatic processing as you type
+  - Option to convert newlines to literal "\n" strings
+  - Copy button for easy clipboard access
+- Added PyQt5 dependency to requirements.txt
+
+### Files Changed:
+- TL_json-friendly-markdown/json_markdown_gui.py (new file)
+- TL_json-friendly-markdown/README.md (new file)
+- requirements.txt
+
+## 2025-04-06: Created Learning Session Database Module
+
+### Changes:
+- Created a new module TL_learning-session-database for storing learning sessions in SQLite
+- Implemented a database manager with CRUD operations for learning sessions
+- Added SQLAlchemy ORM support as an alternative approach
+- Created a migration script to convert existing JSON data to SQLite
+- Added comprehensive unit tests for database operations
+- Set up proper directory structure following best practices:
+  - database/ - Core database functionality
+  - data/ - For storing the SQLite database file
+  - tests/ - Unit tests for database operations
+
+### Files Changed:
+- TL_learning-session-database/README.md (new file)
+- TL_learning-session-database/.gitignore (new file)
+- TL_learning-session-database/database/__init__.py (new file)
+- TL_learning-session-database/database/db_manager.py (new file)
+- TL_learning-session-database/database/models.py (new file)
+- TL_learning-session-database/database/migrations/__init__.py (new file)
+- TL_learning-session-database/json_to_sqlite.py (new file)
+- TL_learning-session-database/tests/test_db.py (new file)

@@ -56,3 +56,4 @@ tmp/
 
 # Generated transcriptions
 *.txt
+!requirements.txt

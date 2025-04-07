@@ -1,13 +1,58 @@
 # python related
-__pycache__
-*.pyc
-.venv
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+ENV/
 
 # js related
 node_modules
 
 # other
 .DS_Store
+Thumbs.db
 
 # .env
 .env
+
+# Python virtual environment
+.venv/
+venv/
+ENV/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Audio and video files
+*.mp3
+*.wav
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.flv
+*.ogg
+*.flac
+*.m4a
+
+# Generated transcriptions
+*.txt

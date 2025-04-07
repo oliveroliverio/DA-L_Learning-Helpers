@@ -33,3 +33,15 @@
 ### Files Changed:
 - tests/slide_extractor/__init__.py (new file)
 - tests/slide_extractor/test_image_similarity.py (new file)
+
+## 2025-04-06: Added image deletion functionality to slide extractor
+
+### Changes:
+- Added configuration option DELETE_IMAGES_AFTER_OCR (default: True) to control image deletion
+- Modified the OCR worker to delete image files after OCR processing is complete
+- Added error handling for file deletion operations
+- Images are now deleted in all cases: successful OCR, no text extracted, and processing errors
+- This change reduces disk space usage as only the extracted text is kept
+
+### Files Changed:
+- TL_slide_extractor/slide_extractor.py

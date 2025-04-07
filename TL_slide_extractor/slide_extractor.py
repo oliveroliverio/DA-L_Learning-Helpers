@@ -15,11 +15,12 @@ import re
 
 class Config:
     """Configuration settings for the application."""
-    SCREEN_INDEX = 2  # 0 = all screens, since mss on macOS treats all as one virtual screen
+    SCREEN_INDEX = 1  # 0 = all screens, since mss on macOS treats all as one virtual screen
     CAPTURE_INTERVAL = 2  # seconds between checks
     SSIM_THRESHOLD = 0.95  # lower = more sensitive to change
     OUTPUT_DIR = "captured_slides"
     OCR_QUEUE_SIZE = 100  # maximum number of images to queue for OCR processing
+    DELETE_IMAGES_AFTER_OCR = True  # delete image files after OCR processing
 
     @classmethod
     def initialize(cls):
@@ -74,7 +75,7 @@ class FileManager:
         timestamp = datetime.now().strftime("%y%m%d-%H%M%S")
         filepath = os.path.join(output_dir, f"{timestamp}.png")
         cv2.imwrite(filepath, image)
-        print(f"[+] Slide captured: {filepath}")
+        print(f"[+] 🔍 Slide captured: {filepath}")
         return filepath
 
 
@@ -194,17 +195,39 @@ class SlideCapture:
                             f.write(text)
 
                         print(f"📝 OCR text saved to {ocr_filepath}")
+                        
+                        # Delete the image file if configured to do so
+                        if Config.DELETE_IMAGES_AFTER_OCR:
+                            try:
+                                os.remove(filepath)
+                                print(f"🗑️ Deleted image file: {filename}")
+                            except Exception as e:
+                                print(f"⚠️ Failed to delete image {filename}: {e}")
                     else:
                         print(f"⚠️ No text extracted from {filename}")
+                        
+                        # Delete the image file even if no text was extracted
+                        if Config.DELETE_IMAGES_AFTER_OCR:
+                            try:
+                                os.remove(filepath)
+                                print(f"🗑️ Deleted image file: {filename}")
+                            except Exception as e:
+                                print(f"⚠️ Failed to delete image {filename}: {e}")
                 except Exception as e:
                     print(f"❌ Error processing {filename}: {e}")
+                    
+                    # Delete the image file even if processing failed
+                    if Config.DELETE_IMAGES_AFTER_OCR:
+                        try:
+                            os.remove(filepath)
+                            print(f"🗑️ Deleted image file: {filename}")
+                        except Exception as e:
+                            print(f"⚠️ Failed to delete image {filename}: {e}")
                 finally:
-                    # Always mark the task as done
                     self.ocr_queue.task_done()
             except Exception as e:
                 print(f"❌ OCR worker error: {e}")
-                # Continue processing even if there's an error with one image
-                continue
+                time.sleep(1)  # Prevent tight loop in case of persistent errors
 
 
 def main():

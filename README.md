@@ -47,6 +47,7 @@ transcription_app/           # Main package
 └── utils/                   # Utility functions
     ├── __init__.py
     └── file_utils.py        # File operation utilities
+    └── prep_for_json.py     # Prepares transcription data for JSON output
 
 tests/                       # Test suite
 ├── __init__.py
@@ -57,62 +58,31 @@ tests/                       # Test suite
 └── utils/                   # Tests for utilities
     ├── __init__.py
     └── test_file_utils.py   # Tests for file utilities
+    └── test_prep_for_json.py # Tests for prep_for_json
 
 transcribe.py                # Main entry point script
 setup.py                     # Package installation configuration
 requirements.txt             # Project dependencies
-```
 
-## File Descriptions
+## Learning Sessions
 
-- **transcribe.py**: The main entry point script that users can run to transcribe files. It imports and uses the functionality from the `transcription_app` package.
+The `prep_for_json.py` script helps prepare markdown content (such as ChatGPT conversations) for JSON storage by:
 
-- **transcription_app/core/transcriber.py**: Contains the `Transcriber` class that handles the transcription of audio and video files using OpenAI's Whisper model.
+1. Escaping double quotes to ensure JSON compatibility
+2. Removing excessive blank lines to improve readability
+3. Saving the processed content to a new file with `_esc_dblqts` suffix
 
-- **transcription_app/core/extractors.py**: Contains the `AudioExtractor` interface and `FFmpegAudioExtractor` implementation for extracting audio from video files.
-
-- **transcription_app/config/settings.py**: Contains configuration settings for different environments (dev, test, prod).
-
-- **transcription_app/utils/file_utils.py**: Contains utility functions for file operations.
-
-- **transcription_app/cli.py**: Implements the command-line interface for the application.
-
-## Usage
-
-### Command Line Interface
+### Usage
 
 ```bash
-python transcriber.py path/to/file.mp4 --model base --output transcription.txt
+# Process a markdown file
+python prep_for_json.py -f path/to/markdown_file.md
+
+# Process content from clipboard
+python prep_for_json.py
+
+# Test JSON compatibility
+python prep_for_json.py -f path/to/markdown_file.md -t
 ```
 
-Options:
-- `--model`: Choose model size (tiny, base, small, medium, large)
-- `--output`: Specify output file (default: input filename with .txt extension)
-
-### As a Library
-
-```python
-from transcriber import Transcriber
-
-# Initialize with desired model size
-transcriber = Transcriber(model_size="base")
-
-# Transcribe a file
-text = transcriber.transcribe_file("path/to/file.mp4")
-print(text)
-
-# Transcribe and save to file
-output_path = transcriber.transcribe_and_save("path/to/file.mp4", "output.txt")
-```
-
-## Testing
-
-Run the tests with pytest:
-
-```bash
-python -m pytest tests/
-```
-
-## License
-
-MIT
+The script can be used to prepare learning session content for storage in a structured JSON format, making it easier to build a knowledge base from your conversations.

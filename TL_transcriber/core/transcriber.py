@@ -13,7 +13,7 @@ class Transcriber:
     """
     
     # Class constants for file extensions
-    VIDEO_EXTENSIONS = ['.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv']
+    VIDEO_EXTENSIONS = ['.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv', '.wmv']
     AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.flac', '.m4a']
     
     def __init__(self, model_size="base", model_factory=None, audio_extractor=None):

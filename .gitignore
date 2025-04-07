@@ -1,0 +1,13 @@
+# python related
+__pycache__
+*.pyc
+.venv
+
+# js related
+node_modules
+
+# other
+.DS_Store
+
+# .env
+.env

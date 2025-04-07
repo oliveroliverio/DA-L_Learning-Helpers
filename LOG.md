@@ -61,3 +61,15 @@
 
 ### Files Changed:
 - TL_slide_extractor/slide_extractor.py
+
+## 2025-04-06: Merged slide extractor enhancements to main branch
+
+### Changes:
+- Merged the TL-slide_extractor branch into the main branch
+- All slide extractor enhancements are now available in the main codebase:
+  - Dark mode OCR processing support
+  - Image deletion functionality
+  - Unit tests for image similarity
+
+### Files Changed:
+- No direct file changes, only branch management

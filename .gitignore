@@ -57,3 +57,15 @@ tmp/
 # Generated transcriptions
 *.txt
 !requirements.txt
+
+# large video and audiofiles
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.flv
+*.ogg
+*.flac
+*.m4a
+*.wmv

@@ -18,9 +18,13 @@ class Config:
     SCREEN_INDEX = 1  # 0 = all screens, since mss on macOS treats all as one virtual screen
     CAPTURE_INTERVAL = 2  # seconds between checks
     SSIM_THRESHOLD = 0.95  # lower = more sensitive to change
-    OUTPUT_DIR = "captured_slides"
+    OUTPUT_DIR = "captured_text"
     OCR_QUEUE_SIZE = 100  # maximum number of images to queue for OCR processing
     DELETE_IMAGES_AFTER_OCR = True  # delete image files after OCR processing
+    # Minimum text length to consider OCR successful (characters)
+    MIN_TEXT_LENGTH = 10
+    # Whether to try both light and dark mode processing
+    TRY_DARK_MODE = False
 
     @classmethod
     def initialize(cls):
@@ -90,31 +94,91 @@ class OCRProcessor:
             # Convert to grayscale
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-            # Apply adaptive thresholding to handle different lighting conditions
-            thresh = cv2.adaptiveThreshold(
-                gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
-            )
+            # Try standard processing (assuming light background, dark text)
+            light_mode_text = OCRProcessor._process_light_mode(gray)
 
-            # Noise removal using median blur
-            processed = cv2.medianBlur(thresh, 3)
+            # If text extraction fails or returns very little text and dark mode is enabled
+            if (Config.TRY_DARK_MODE and
+                    (not light_mode_text or len(light_mode_text.strip()) < Config.MIN_TEXT_LENGTH)):
+                print("⚠️ Light mode OCR produced limited text, trying dark mode...")
+                dark_mode_text = OCRProcessor._process_dark_mode(gray)
 
-            # OCR with multiple language support and page segmentation mode for slide layout
-            text = pytesseract.image_to_string(
-                processed,
-                # Page segmentation mode 1 (auto), OCR Engine mode 3 (default)
-                config='--psm 1 --oem 3 -l eng'
-            )
+                # Use the result with more text
+                if len(dark_mode_text.strip()) > len(light_mode_text.strip()):
+                    print("✅ Dark mode OCR better")
+                    return dark_mode_text.strip()
+                else:
+                    return light_mode_text.strip()
 
-            # If text extraction fails or returns very little text, try with original image
-            if not text or len(text.strip()) < 10:
-                print(
-                    "⚠️ Initial OCR produced limited text, trying with original image...")
-                text = pytesseract.image_to_string(image)
-
-            return text.strip()
+            return light_mode_text.strip()
         except Exception as e:
             print(f"❌ OCR error: {e}")
             return ""
+
+    @staticmethod
+    def _process_light_mode(gray_image):
+        """Process image assuming light background with dark text."""
+        # Apply adaptive thresholding to handle different lighting conditions
+        thresh = cv2.adaptiveThreshold(
+            gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+        )
+
+        # Noise removal using median blur
+        processed = cv2.medianBlur(thresh, 3)
+
+        # OCR with multiple language support and page segmentation mode for slide layout
+        # Page segmentation mode 1 (auto), OCR Engine mode 3 (default)
+        text = pytesseract.image_to_string(
+            processed,
+            config='--psm 1 --oem 3 -l eng'
+        )
+
+        # If text extraction fails or returns very little text, try with original image
+        if not text or len(text.strip()) < Config.MIN_TEXT_LENGTH:
+            print("⚠️ Processed light mode OCR failed, trying with original image...")
+            text = pytesseract.image_to_string(gray_image)
+
+        return text
+
+    @staticmethod
+    def _process_dark_mode(gray_image):
+        """Process image assuming dark background with light text."""
+        # Invert the image (dark background becomes light, light text becomes dark)
+        inverted = cv2.bitwise_not(gray_image)
+
+        # Apply adaptive thresholding to the inverted image
+        thresh = cv2.adaptiveThreshold(
+            inverted, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+        )
+
+        # Noise removal using median blur
+        processed = cv2.medianBlur(thresh, 3)
+
+        # Try additional processing for dark mode - sometimes helps with contrast
+        # Apply CLAHE (Contrast Limited Adaptive Histogram Equalization)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        enhanced = clahe.apply(inverted)
+
+        # Apply thresholding to enhanced image
+        _, enhanced_thresh = cv2.threshold(
+            enhanced, 150, 255, cv2.THRESH_BINARY)
+
+        # OCR on both processed versions and take the one with more text
+        text1 = pytesseract.image_to_string(
+            processed,
+            config='--psm 1 --oem 3 -l eng'
+        )
+
+        text2 = pytesseract.image_to_string(
+            enhanced_thresh,
+            config='--psm 1 --oem 3 -l eng'
+        )
+
+        # Use the result with more text
+        if len(text2.strip()) > len(text1.strip()):
+            return text2
+        else:
+            return text1
 
 
 # === Slide Capture Application ===
@@ -195,28 +259,26 @@ class SlideCapture:
                             f.write(text)
 
                         print(f"📝 OCR text saved to {ocr_filepath}")
-                        
+
                         # Delete the image file if configured to do so
                         if Config.DELETE_IMAGES_AFTER_OCR:
                             try:
                                 os.remove(filepath)
                                 print(f"🗑️ Deleted image file: {filename}")
                             except Exception as e:
-                                print(f"⚠️ Failed to delete image {filename}: {e}")
+                                print(
+                                    f"⚠️ Failed to delete image {filename}: {e}")
                     else:
                         print(f"⚠️ No text extracted from {filename}")
-                        
-                        # Delete the image file even if no text was extracted
                         if Config.DELETE_IMAGES_AFTER_OCR:
                             try:
                                 os.remove(filepath)
                                 print(f"🗑️ Deleted image file: {filename}")
                             except Exception as e:
-                                print(f"⚠️ Failed to delete image {filename}: {e}")
+                                print(
+                                    f"⚠️ Failed to delete image {filename}: {e}")
                 except Exception as e:
                     print(f"❌ Error processing {filename}: {e}")
-                    
-                    # Delete the image file even if processing failed
                     if Config.DELETE_IMAGES_AFTER_OCR:
                         try:
                             os.remove(filepath)
@@ -227,7 +289,8 @@ class SlideCapture:
                     self.ocr_queue.task_done()
             except Exception as e:
                 print(f"❌ OCR worker error: {e}")
-                time.sleep(1)  # Prevent tight loop in case of persistent errors
+                # Prevent tight loop in case of persistent errors
+                time.sleep(1)
 
 
 def main():

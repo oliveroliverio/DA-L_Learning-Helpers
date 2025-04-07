@@ -45,3 +45,19 @@
 
 ### Files Changed:
 - TL_slide_extractor/slide_extractor.py
+
+## 2025-04-06: Enhanced OCR processing to handle dark mode
+
+### Changes:
+- Added support for dark mode text recognition (light text on dark backgrounds)
+- Implemented dual-path OCR processing for both light and dark mode
+- Added image inversion for dark mode processing
+- Added CLAHE (Contrast Limited Adaptive Histogram Equalization) for better contrast in dark mode
+- Added configuration options to control OCR behavior:
+  - MIN_TEXT_LENGTH: Minimum text length to consider OCR successful
+  - TRY_DARK_MODE: Whether to try both light and dark mode processing
+- Changed output directory from "captured_slides" to "captured_text" to better reflect content
+- Fixed various code style issues and improved code organization
+
+### Files Changed:
+- TL_slide_extractor/slide_extractor.py
